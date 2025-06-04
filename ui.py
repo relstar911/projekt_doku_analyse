@@ -53,182 +53,241 @@ class DocumentationAnalyzerUI:
         self.log_text = ""
         
     def create_ui(self):
-        # Main frame
-        main_frame = ttk.Frame(self.root, padding="20")
-        main_frame.pack(fill=tk.BOTH, expand=True)
-        
-        # Header with title
-        header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill=tk.X, pady=10)
-        
-        # Create a stylish text-based header
-        title_label = ttk.Label(header_frame, text="EDNX", style="Header.TLabel", font=("Arial", 24, "bold"))
-        title_label.pack(side=tk.LEFT, padx=5)
-        
-        subtitle_label = ttk.Label(header_frame, text="Dokumentations-Analyse Tool", style="Subheader.TLabel")
-        subtitle_label.pack(side=tk.LEFT, padx=5)
-        
-        # Add a horizontal separator
-        separator = ttk.Separator(main_frame, orient='horizontal')
-        separator.pack(fill=tk.X, pady=10)
-        
-        # Input paths section
-        paths_frame = ttk.LabelFrame(main_frame, text="Eingabeverzeichnisse", padding="15")
-        paths_frame.pack(fill=tk.X, pady=10)
-        
-        # Description
-        path_desc = ttk.Label(paths_frame, text="Wählen Sie die zu analysierenden Verzeichnisse aus:")
-        path_desc.pack(anchor=tk.W, pady=(0, 10))
-        
-        # List of paths with modern styling
-        paths_list_frame = ttk.Frame(paths_frame)
-        paths_list_frame.pack(fill=tk.BOTH, expand=True, pady=5)
-        
-        self.paths_listbox = tk.Listbox(paths_list_frame, height=5, bg="white", 
-                                      selectbackground=self.accent_color, 
-                                      selectforeground="white",
-                                      borderwidth=1, relief=tk.SOLID)
-        self.paths_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        
-        paths_scrollbar = ttk.Scrollbar(paths_list_frame, orient="vertical", command=self.paths_listbox.yview)
-        paths_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.paths_listbox.config(yscrollcommand=paths_scrollbar.set)
-        
-        # Buttons for paths with improved styling
-        paths_buttons_frame = ttk.Frame(paths_frame)
-        paths_buttons_frame.pack(fill=tk.X, pady=10)
-        
-        # Style for buttons
-        self.style.configure('Add.TButton', background=self.accent_color)
-        self.style.configure('Remove.TButton', background='#d32f2f')
-        
-        add_path_button = ttk.Button(paths_buttons_frame, text="Verzeichnis hinzufügen", 
-                                    style='Add.TButton', command=self.add_path)
-        add_path_button.pack(side=tk.LEFT, padx=5)
-        
-        remove_path_button = ttk.Button(paths_buttons_frame, text="Verzeichnis entfernen", 
-                                       style='Remove.TButton', command=self.remove_path)
-        remove_path_button.pack(side=tk.LEFT, padx=5)
-        
-        # Output directory section
-        output_frame = ttk.LabelFrame(main_frame, text="Ausgabeverzeichnis", padding="15")
-        output_frame.pack(fill=tk.X, pady=10)
-        
-        # Description
-        output_desc = ttk.Label(output_frame, text="Wählen Sie das Zielverzeichnis für die Analyseergebnisse:")
-        output_desc.pack(anchor=tk.W, pady=(0, 10))
-        
-        # Output directory selection with modern styling
-        output_select_frame = ttk.Frame(output_frame)
-        output_select_frame.pack(fill=tk.X, expand=True)
-        
-        output_entry = ttk.Entry(output_select_frame, textvariable=self.output_dir, width=50)
-        output_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5, pady=5)
-        
-        output_btn = ttk.Button(output_select_frame, text="Durchsuchen", command=self.select_output_dir)
-        output_btn.pack(side=tk.RIGHT, padx=5, pady=5)
-        
-        # Options section
-        options_frame = ttk.LabelFrame(main_frame, text="Optionen", padding="15")
-        options_frame.pack(fill=tk.X, pady=10)
-        
-        # Create two columns for options
-        left_options = ttk.Frame(options_frame)
-        left_options.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
-        
-        right_options = ttk.Frame(options_frame)
-        right_options.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=5)
-        
-        # Left column - Summarization options
-        sum_header = ttk.Label(left_options, text="KI-Zusammenfassung", font=("Arial", 11, "bold"))
-        sum_header.pack(anchor=tk.W, pady=(0, 5))
-        
-        # Style for checkbuttons
-        self.style.configure('TCheckbutton', background=self.bg_color)
-        
-        summarization_check = ttk.Checkbutton(left_options, text="KI-Zusammenfassung aktivieren", 
-                                             variable=self.enable_summarization)
-        summarization_check.pack(anchor=tk.W, pady=2)
-        
-        openai_check = ttk.Checkbutton(left_options, text="OpenAI API verwenden (sonst lokales LLM)", 
-                                      variable=self.use_openai)
-        openai_check.pack(anchor=tk.W, pady=2)
-        
-        # Right column - Batch processing options
-        batch_header = ttk.Label(right_options, text="Batch-Verarbeitung", font=("Arial", 11, "bold"))
-        batch_header.pack(anchor=tk.W, pady=(0, 5))
-        
-        # Min summaries
-        min_frame = ttk.Frame(right_options)
-        min_frame.pack(fill=tk.X, pady=2)
-        
-        min_label = ttk.Label(min_frame, text="Min. Zusammenfassungen pro Lauf:")
-        min_label.pack(side=tk.LEFT)
-        
-        min_spin = ttk.Spinbox(min_frame, from_=1, to=20, width=5, textvariable=self.min_summaries)
-        min_spin.pack(side=tk.LEFT, padx=5)
-        
-        # Max summaries
-        max_frame = ttk.Frame(right_options)
-        max_frame.pack(fill=tk.X, pady=2)
-        
-        max_label = ttk.Label(max_frame, text="Max. Zusammenfassungen pro Lauf:")
-        max_label.pack(side=tk.LEFT)
-        
-        max_spin = ttk.Spinbox(max_frame, from_=1, to=50, width=5, textvariable=self.max_summaries)
-        max_spin.pack(side=tk.LEFT, padx=5)
-        
-        # Log section
-        log_frame = ttk.LabelFrame(main_frame, text="Log", padding="15")
-        log_frame.pack(fill=tk.BOTH, expand=True, pady=10)
-        
-        # Log description
-        log_desc = ttk.Label(log_frame, text="Fortschritt und Status der Analyse:")
-        log_desc.pack(anchor=tk.W, pady=(0, 5))
-        
-        # Log text widget with modern styling
-        log_container = ttk.Frame(log_frame, borderwidth=1, relief=tk.SOLID)
-        log_container.pack(fill=tk.BOTH, expand=True)
-        
-        self.log_text_widget = tk.Text(log_container, wrap=tk.WORD, height=10, 
-                                     bg="white", fg=self.text_color,
-                                     font=("Consolas", 10),
-                                     borderwidth=0)
-        self.log_text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        
-        log_scrollbar = ttk.Scrollbar(log_container, orient=tk.VERTICAL, command=self.log_text_widget.yview)
-        log_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.log_text_widget.config(yscrollcommand=log_scrollbar.set)
-        
-        # Action buttons with improved styling
-        buttons_frame = ttk.Frame(main_frame)
-        buttons_frame.pack(fill=tk.X, pady=15)
-        
-        # Style for action buttons
-        self.style.configure('Start.TButton', background=self.success_color, font=("Arial", 11))
-        self.style.configure('Stop.TButton', background="#d32f2f", font=("Arial", 11))
-        
-        self.start_btn = ttk.Button(buttons_frame, text="Analyse starten", 
-                                   style="Start.TButton", command=self.start_analysis)
-        self.start_btn.pack(side=tk.RIGHT, padx=10, pady=5, ipadx=10, ipady=5)
-        
-        self.stop_btn = ttk.Button(buttons_frame, text="Abbrechen", 
-                                  style="Stop.TButton", command=self.stop_analysis, 
-                                  state=tk.DISABLED)
-        self.stop_btn.pack(side=tk.RIGHT, padx=10, pady=5, ipadx=10, ipady=5)
+        print("[DEBUG] Starte Aufbau der UI...")
+        try:
+            # Scrollable Canvas
+            canvas = tk.Canvas(self.root, bg=self.bg_color)
+            scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=canvas.yview)
+            
+            # Main frame inside canvas
+            main_frame = ttk.Frame(canvas, padding="20")
+            
+            # Configure scrolling
+            canvas.configure(yscrollcommand=scrollbar.set)
+            canvas.pack(side="left", fill="both", expand=True)
+            scrollbar.pack(side="right", fill="y")
+            
+            # Create window inside canvas for main_frame
+            canvas_window = canvas.create_window((0, 0), window=main_frame, anchor="nw")
+            
+            # Update scroll region when main_frame changes size
+            def configure_scroll_region(event):
+                canvas.configure(scrollregion=canvas.bbox("all"))
+            main_frame.bind("<Configure>", configure_scroll_region)
+            
+            # Update canvas window width when canvas size changes
+            def configure_canvas_window(event):
+                canvas.itemconfig(canvas_window, width=event.width)
+            canvas.bind("<Configure>", configure_canvas_window)
+            
+            # Header with title
+            header_frame = ttk.Frame(main_frame)
+            header_frame.pack(fill=tk.X, pady=10)
+            
+            # Create a stylish text-based header
+            title_label = ttk.Label(header_frame, text="EDNX", style="Header.TLabel", font=("Arial", 24, "bold"))
+            title_label.pack(side=tk.LEFT, padx=5)
+            
+            subtitle_label = ttk.Label(header_frame, text="Dokumentations-Analyse Tool", style="Subheader.TLabel")
+            subtitle_label.pack(side=tk.LEFT, padx=5)
+            
+            print("[DEBUG] Header erstellt.")
+            
+            # Add a horizontal separator
+            separator = ttk.Separator(main_frame, orient='horizontal')
+            separator.pack(fill=tk.X, pady=10)
+            
+            # Input paths section
+            paths_frame = ttk.LabelFrame(main_frame, text="Eingabeverzeichnisse", padding="15")
+            paths_frame.pack(fill=tk.X, pady=10)
+            
+            # Description
+            path_desc = ttk.Label(paths_frame, text="Wählen Sie die zu analysierenden Verzeichnisse aus:")
+            path_desc.pack(anchor=tk.W, pady=(0, 10))
+            
+            # List of paths with modern styling
+            paths_list_frame = ttk.Frame(paths_frame)
+            paths_list_frame.pack(fill=tk.BOTH, expand=True, pady=5)
+            
+            self.paths_listbox = tk.Listbox(paths_list_frame, height=5, bg="white", 
+                                          selectbackground=self.accent_color, 
+                                          selectforeground="white",
+                                          borderwidth=1, relief=tk.SOLID)
+            self.paths_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            
+            paths_scrollbar = ttk.Scrollbar(paths_list_frame, orient="vertical", command=self.paths_listbox.yview)
+            paths_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            self.paths_listbox.config(yscrollcommand=paths_scrollbar.set)
+            
+            print("[DEBUG] Eingabeverzeichnisse erstellt.")
+            
+            # Buttons for paths with improved styling
+            paths_buttons_frame = ttk.Frame(paths_frame)
+            paths_buttons_frame.pack(fill=tk.X, pady=10)
+            
+            # Style for buttons
+            self.style.configure('Add.TButton', background=self.accent_color)
+            self.style.configure('Remove.TButton', background='#d32f2f')
+            
+            add_path_button = ttk.Button(paths_buttons_frame, text="Verzeichnis hinzufügen", 
+                                        style='Add.TButton', command=self.add_path)
+            add_path_button.pack(side=tk.LEFT, padx=5)
+            
+            remove_path_button = ttk.Button(paths_buttons_frame, text="Verzeichnis entfernen", 
+                                           style='Remove.TButton', command=self.remove_path)
+            remove_path_button.pack(side=tk.LEFT, padx=5)
+            
+            print("[DEBUG] Verzeichnispfad-Buttons erstellt.")
+            
+            # Output directory section
+            output_frame = ttk.LabelFrame(main_frame, text="Ausgabeverzeichnis", padding="15")
+            output_frame.pack(fill=tk.X, pady=10)
+            
+            # Description
+            output_desc = ttk.Label(output_frame, text="Wählen Sie das Zielverzeichnis für die Analyseergebnisse:")
+            output_desc.pack(anchor=tk.W, pady=(0, 10))
+            
+            # Output directory selection with modern styling
+            output_select_frame = ttk.Frame(output_frame)
+            output_select_frame.pack(fill=tk.X, expand=True)
+            
+            output_entry = ttk.Entry(output_select_frame, textvariable=self.output_dir, width=50)
+            output_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5, pady=5)
+            
+            output_btn = ttk.Button(output_select_frame, text="Durchsuchen", command=self.select_output_dir)
+            output_btn.pack(side=tk.RIGHT, padx=5, pady=5)
+            
+            print("[DEBUG] Ausgabeverzeichnis erstellt.")
+            
+            # Options section
+            options_frame = ttk.LabelFrame(main_frame, text="Optionen", padding="15")
+            options_frame.pack(fill=tk.X, pady=10)
+            
+            # Create two columns for options
+            left_options = ttk.Frame(options_frame)
+            left_options.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
+            
+            right_options = ttk.Frame(options_frame)
+            right_options.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=5)
+            
+            # Left column - Summarization options
+            sum_header = ttk.Label(left_options, text="KI-Zusammenfassung", font=("Arial", 11, "bold"))
+            sum_header.pack(anchor=tk.W, pady=(0, 5))
+            
+            # Style for checkbuttons
+            self.style.configure('TCheckbutton', background=self.bg_color)
+            
+            summarization_check = ttk.Checkbutton(left_options, text="KI-Zusammenfassung aktivieren", 
+                                                 variable=self.enable_summarization)
+            summarization_check.pack(anchor=tk.W, pady=2)
+            
+            openai_check = ttk.Checkbutton(left_options, text="OpenAI API verwenden (sonst lokales LLM)", 
+                                          variable=self.use_openai)
+            openai_check.pack(anchor=tk.W, pady=2)
+            
+            print("[DEBUG] Zusammenfassungsoptionen erstellt.")
+            
+            # Right column - Batch processing options
+            batch_header = ttk.Label(right_options, text="Batch-Verarbeitung", font=("Arial", 11, "bold"))
+            batch_header.pack(anchor=tk.W, pady=(0, 5))
+            
+            # Min summaries
+            min_frame = ttk.Frame(right_options)
+            min_frame.pack(fill=tk.X, pady=2)
+            
+            min_label = ttk.Label(min_frame, text="Min. Zusammenfassungen pro Lauf:")
+            min_label.pack(side=tk.LEFT)
+            
+            min_spin = ttk.Spinbox(min_frame, from_=1, to=20, width=5, textvariable=self.min_summaries)
+            min_spin.pack(side=tk.LEFT, padx=5)
+            
+            # Max summaries
+            max_frame = ttk.Frame(right_options)
+            max_frame.pack(fill=tk.X, pady=2)
+            
+            max_label = ttk.Label(max_frame, text="Max. Zusammenfassungen pro Lauf:")
+            max_label.pack(side=tk.LEFT)
+            
+            max_spin = ttk.Spinbox(max_frame, from_=1, to=50, width=5, textvariable=self.max_summaries)
+            max_spin.pack(side=tk.LEFT, padx=5)
+            
+            print("[DEBUG] Batch-Verarbeitungsoptionen erstellt.")
+            
+            # Log section
+            log_frame = ttk.LabelFrame(main_frame, text="Log", padding="15")
+            log_frame.pack(fill=tk.BOTH, expand=True, pady=10)
+            
+            # Log description
+            log_desc = ttk.Label(log_frame, text="Fortschritt und Status der Analyse:")
+            log_desc.pack(anchor=tk.W, pady=(0, 5))
+            
+            # Log text widget with modern styling
+            log_container = ttk.Frame(log_frame, borderwidth=1, relief=tk.SOLID)
+            log_container.pack(fill=tk.BOTH, expand=True)
+            
+            self.log_text_widget = tk.Text(log_container, wrap=tk.WORD, height=10, 
+                                         bg="white", fg=self.text_color,
+                                         font=("Consolas", 10),
+                                         borderwidth=0)
+            self.log_text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            
+            log_scrollbar = ttk.Scrollbar(log_container, orient=tk.VERTICAL, command=self.log_text_widget.yview)
+            log_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            self.log_text_widget.config(yscrollcommand=log_scrollbar.set)
+            
+            print("[DEBUG] Log erstellt.")
+            
+            # Action buttons with improved styling
+            buttons_frame = ttk.Frame(main_frame)
+            buttons_frame.pack(fill=tk.X, pady=20, expand=False)
+
+            # Hinweistext über dem Button
+            hint_label = ttk.Label(buttons_frame, text="Bitte Eingaben prüfen und dann Analyse starten.", font=("Arial", 12, "bold"), foreground=self.accent_color, background=self.bg_color)
+            hint_label.pack(side=tk.TOP, pady=(0, 10))
+
+            # Einfacher, aber auffälliger Start-Button (mit normalem tk.Button statt ttk.Button)
+            self.start_btn = tk.Button(buttons_frame, text="★ ANALYSE STARTEN ★", 
+                                     bg='#2e7d32', fg='white', font=("Arial", 15, "bold"),
+                                     command=self.start_analysis,
+                                     relief=tk.RAISED, bd=3)
+            self.start_btn.pack(side=tk.TOP, pady=5, ipadx=30, ipady=15)
+
+            print("[DEBUG] Start-Button erstellt.")
+
+            # Auffälliger Stop-Button (rechts daneben)
+            self.style.configure('Stop.TButton', background="#d32f2f", foreground='white', font=("Arial", 12, "bold"), borderwidth=2)
+            self.style.map('Stop.TButton', background=[('active', '#b71c1c')])
+
+            self.stop_btn = ttk.Button(buttons_frame, text="Abbrechen", 
+                                      style="Stop.TButton", command=self.stop_analysis, 
+                                      state=tk.DISABLED)
+            self.stop_btn.pack(side=tk.RIGHT, padx=10, pady=5, ipadx=10, ipady=5)
+            print("[DEBUG] Stop-Button erstellt und gepackt!")
+            print("[DEBUG] UI-Aufbau erfolgreich abgeschlossen!")
+        except Exception as e:
+            print(f"[ERROR] Fehler beim Erstellen der UI: {str(e)}")
+            self.log(f"Fehler beim Erstellen der UI: {str(e)}")
     
     def add_path(self):
-        path = filedialog.askdirectory(title="Verzeichnis auswählen")
-        if path:
-            self.start_paths.append(path)
-            self.paths_listbox.insert(tk.END, path)
+        try:
+            path = filedialog.askdirectory(title="Verzeichnis auswählen")
+            if path:
+                self.start_paths.append(path)
+                self.paths_listbox.insert(tk.END, path)
+        except Exception as e:
+            print(f"Fehler beim Hinzufügen des Verzeichnisses: {str(e)}")
+            self.log(f"Fehler beim Hinzufügen des Verzeichnisses: {str(e)}")
     
     def remove_path(self):
-        selected = self.paths_listbox.curselection()
-        if selected:
-            index = selected[0]
-            self.paths_listbox.delete(index)
-            self.start_paths.pop(index)
+        try:
+            selected = self.paths_listbox.curselection()
+            if selected:
+                index = selected[0]
+                self.paths_listbox.delete(index)
+                self.start_paths.pop(index)
+        except Exception as e:
+            print(f"Fehler beim Entfernen des Verzeichnisses: {str(e)}")
+            self.log(f"Fehler beim Entfernen des Verzeichnisses: {str(e)}")
     
     def select_output_dir(self):
         path = filedialog.askdirectory(title="Ausgabeverzeichnis auswählen")

@@ -503,11 +503,30 @@ def main():
         
         try:
             # Generate summary using either OpenAI or local LLM
-            if USE_OPENAI:
-                summary_text = summarize_with_openai(doc_files)
-            else:
-                summary_text = summarize_project_local(doc_files)
-            
+            try:
+                if USE_OPENAI:
+                    summary_text = summarize_with_openai(doc_files)
+                else:
+                    summary_text = summarize_project_local(doc_files)
+                
+                # Prüfe auf Fehler in der Zusammenfassung
+                if summary_text.strip().startswith("Fehler bei der Zusammenfassung"):
+                    print(f"{proj_folder}: Fehler bei der Zusammenfassung – Datei wird nicht gespeichert. {summary_text}")
+                    # Versuche es mit der anderen Methode, falls die erste fehlschlägt
+                    if not USE_OPENAI and "localhost" in summary_text and ("connection" in summary_text.lower() or "verbindung" in summary_text.lower()):
+                        print(f"{proj_folder}: Versuche es mit OpenAI API als Fallback...")
+                        fallback_summary = summarize_with_openai(doc_files)
+                        if not fallback_summary.strip().startswith("Fehler"):
+                            summary_text = fallback_summary
+                        else:
+                            print(f"{proj_folder}: Auch OpenAI API fehlgeschlagen: {fallback_summary}")
+                            continue  # Nicht als zusammengefasst markieren, keine Datei schreiben
+                    else:
+                        continue  # Nicht als zusammengefasst markieren, keine Datei schreiben
+            except Exception as e:
+                print(f"{proj_folder}: Ausnahmefehler bei der Zusammenfassung: {str(e)}")
+                continue  # Nicht als zusammengefasst markieren, keine Datei schreiben
+
             # Save summary to file
             with open(summary_path, "w", encoding="utf-8") as f:
                 f.write(f"# KI-Zusammenfassung: {os.path.basename(proj)}\n\n")
