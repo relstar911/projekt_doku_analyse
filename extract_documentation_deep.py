@@ -9,7 +9,7 @@ import dotenv
 # Import the summarization module
 from summarize import summarize_project_local, summarize_with_openai
 
-# Scan both the user directory and CascadeProjects
+# Konfiguration - Diese Werte können durch die UI überschrieben werden
 STARTPFADEN = [
     r"C:\Users\ardah",
     r"C:\Users\ardah\CascadeProjects"
@@ -20,6 +20,19 @@ STARTPFADEN = [
 # 2 = subdirectories and their subdirectories, etc.
 MAX_DEPTH = 2  # Adjust as needed
 ZIELORDNER = r"C:\Users\ardah\alle_dokumentationen"
+
+# Subfolder for best documented projects
+BEST_DOCS_FOLDER = "best_docs"
+GIT_CLONES_FOLDER = "git_clones"  # Subfolder for Git repositories
+LOCAL_PROJECTS_FOLDER = "local_projects"  # Subfolder for local projects
+SUMMARIES_FOLDER = "summaries"  # Subfolder for AI-generated summaries
+
+# Summarization settings
+ENABLE_SUMMARIZATION = True  # Set to False to disable summarization
+USE_OPENAI = False  # Set to True to use OpenAI API instead of local LLM
+MIN_SUMMARIES_PER_RUN = 5  # Minimum number of summaries to create per run
+MAX_SUMMARIES_PER_RUN = 10  # Maximum number of summaries to create per run
+SUMMARY_BATCH_FILE = "summary_batches.txt"  # File to track which projects have been summarized
 
 # Projekt-Identifikatoren
 PROJECT_MARKERS = [
@@ -34,19 +47,6 @@ DOCS_FOLDERS = ["docs", "Docs", "documentation", "Documentation", "doc", "Doc"]
 README_FILES = ["README.md", "README.txt", "readme.md", "readme.txt"]
 MANIFEST_FILES = ["manifest.json", "manifest.yaml", "manifest.yml", "manifest.xml"]
 OTHER_DOC_FILES = ["LICENSE", "CHANGELOG", "CONTRIBUTING", "CONTRIBUTING.md", "CHANGELOG.md", "LICENSE.md"]
-
-# Subfolder for best documented projects
-BEST_DOCS_FOLDER = "best_docs"
-GIT_CLONES_FOLDER = "git_clones"  # Subfolder for Git repositories
-LOCAL_PROJECTS_FOLDER = "local_projects"  # Subfolder for local projects
-SUMMARIES_FOLDER = "summaries"  # Subfolder for AI-generated summaries
-
-# Summarization settings
-ENABLE_SUMMARIZATION = True  # Set to False to disable summarization
-USE_OPENAI = False  # Set to True to use OpenAI API instead of local LLM
-MIN_SUMMARIES_PER_RUN = 5  # Minimum number of summaries to create per run
-MAX_SUMMARIES_PER_RUN = 10  # Maximum number of summaries to create per run
-SUMMARY_BATCH_FILE = "summary_batches.txt"  # File to track which projects have been summarized
 
 # Minimum quality score to be considered a well-documented project
 MIN_QUALITY_SCORE = 3
